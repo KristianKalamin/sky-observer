@@ -1,0 +1,7 @@
+{
+  "weather": {
+    "hourly-weather-url": "https://api.meteostat.net/v2/point/hourly/",
+    "key": "o3r2AlqIOvcwRUxL1IDUmjFcVtCJD1Dc",
+    "method": "get"
+  }
+}
