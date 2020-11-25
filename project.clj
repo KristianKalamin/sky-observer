@@ -12,7 +12,8 @@
                  [ring/ring-json "0.5.0"]
                  [http-kit "2.5.0"]
                  [cheshire "5.10.0"]
-                 [org.orekit/orekit "10.2"]]
+                 [org.orekit/orekit "10.2"]
+                 [org.clojure/core.async "1.3.610"]]
 
   :java-source-paths ["src/sky_observer/space"]
   :main sky-observer.core/-main

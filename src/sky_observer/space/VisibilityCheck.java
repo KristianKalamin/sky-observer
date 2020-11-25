@@ -39,23 +39,14 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 
 public class VisibilityCheck {
-
-    public VisibilityCheck() {
-    }
-
     private static final double standardMagnitude = 4.83 - (2.5 * FastMath.log10(0.5));
+    private Frame earthFrame;
+    private BodyShape earth;
 
-    public SpaceObject propagate(
-            URL resourceUrl,
-            String date,
-            double observerLat,
-            double observerLon,
-            String satelliteName,
-            String line1,
-            String line2) {
+    public VisibilityCheck(URL resourceUrl) {
+        File resourcePath;
         try {
-            LocalDateTime observerDate = LocalDateTime.parse(date);
-            File resourcePath = Paths.get(resourceUrl.toURI()).toFile();
+            resourcePath = Paths.get(resourceUrl.toURI()).toFile();
 
             // configure Orekit
             if (!resourcePath.exists()) {
@@ -68,6 +59,28 @@ public class VisibilityCheck {
             }
             final DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
             manager.addProvider(new DirectoryCrawler(resourcePath));
+
+            // Earth and frame
+            earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
+            earth = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
+                    Constants.WGS84_EARTH_FLATTENING,
+                    earthFrame);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public SpaceObject propagate(
+
+            String date,
+            int skyVisibility,
+            double observerLat,
+            double observerLon,
+            String satelliteName,
+            String line1,
+            String line2) {
+        try {
+            LocalDateTime observerDate = LocalDateTime.parse(date);
 
             //  Initial state definition : date, orbit
             AbsoluteDate initialDate = new AbsoluteDate(
@@ -91,9 +104,7 @@ public class VisibilityCheck {
             TLE tle = new TLE(line1, line2);
 
             if (observerDate.getYear() < tle.getLaunchYear()) {
-                System.out.println(observerDate.getYear());
-                System.out.println(tle.getLaunchYear());
-                return new SpaceObject();
+                return new SpaceObject(satelliteName, null, null, 1000);
             }
 
             SpaceObject spaceObject = new SpaceObject();
@@ -104,12 +115,6 @@ public class VisibilityCheck {
 
             // Propagator : consider a simple Keplerian motion (could be more elaborate)
             final Propagator kepler = new KeplerianPropagator(initialOrbit);
-
-            // Earth and frame
-            Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
-            final BodyShape earth = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS,
-                    Constants.WGS84_EARTH_FLATTENING,
-                    earthFrame);
 
             // Station
             final double longitude = FastMath.toRadians(observerLon);//FastMath.toRadians(45.);
@@ -128,9 +133,9 @@ public class VisibilityCheck {
                     withConstantElevation(elevation).
                     withHandler((s, detector, increasing) -> {
                         if (increasing)
-                            spaceObject.setStartFlybyTime(new AbsoluteDate(s.getDate(), 0f));
-                        else spaceObject.setEndFlybyTime(new AbsoluteDate(s.getDate(), 0f));
-                       /* System.out.println(" Visibility on " +
+                            spaceObject.setStartFlybyTime(s.getDate().toString());
+                        else spaceObject.setEndFlybyTime(s.getDate().toString());
+                      /*  System.out.println(" Visibility on " +
                                 detector.getTopocentricFrame().getName() +
                                 (increasing ? " begins at " : " ends at ") +
                                 s.getDate());*/
@@ -140,41 +145,65 @@ public class VisibilityCheck {
             SpacecraftState finalState = kepler.propagate(endDate);
 
             if (spaceObject.getStartFlybyTime() == null || spaceObject.getEndFlybyTime() == null) {
-                System.out.println("no flyby");
-                return new SpaceObject();
+                // System.out.println("no flyby");
+                return new SpaceObject(satelliteName, null, null, 1000);
             }
 
-            PVCoordinatesProvider sun = CelestialBodyFactory.getSun();
-            OneAxisEllipsoid earthEllipsoid = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS, 0.0,
-                    FramesFactory.getITRF(IERSConventions.IERS_2010, true));
-
-            EclipseDetector eclipseDetector = new EclipseDetector(sun, 696000000, earthEllipsoid);
-
-            AltitudeDetector altitudeDetector = new AltitudeDetector(maxcheck, threshold, earthEllipsoid);
-            double satelliteAltitude = altitudeDetector.g(finalState) / 1000; // km
-            double g = eclipseDetector.g(finalState);
-
-            Vector3D sunPosition = sun.getPVCoordinates(finalState.getDate(), earth.getBodyFrame()).getPosition();
-            Vector3D groundPointPos = earth.transform(stationPosition);
-            Vector3D sunDirection = sunPosition.subtract(groundPointPos);
-            double sunElevation = 0.5 * FastMath.PI - Vector3D.angle(sunDirection, stationPosition.getZenith());
-            sunElevation = FastMath.toDegrees(sunElevation);
-
-            double mag = 1000;
-            if (g > 0 && sunElevation > -18 && sunElevation < -6) {
-                Vector3D sunPos = sun.getPVCoordinates(endDate, earthFrame).getPosition();
-                Vector3D satellitePos = finalState.getPVCoordinates(earthFrame).getPosition();
-                double phaseAngle = FastMath.PI - Vector3D.angle(sunPos.subtract(satellitePos), satellitePos);
-
-                mag = standardMagnitude - 15 + 5 * FastMath.log10(satelliteAltitude) - 2.5 * FastMath.log10(FastMath.sin(phaseAngle) + (FastMath.PI - phaseAngle) * FastMath.cos(phaseAngle));
-
+            if (initialDate.isBetweenOrEqualTo(
+                    new AbsoluteDate(
+                            observerDate.getYear(),
+                            observerDate.getMonthValue(),
+                            observerDate.getDayOfMonth(),
+                            8, 0, 0, TimeScalesFactory.getUTC()),
+                    new AbsoluteDate(observerDate.getYear(),
+                            observerDate.getMonthValue(),
+                            observerDate.getDayOfMonth(),
+                            16, 0, 0, TimeScalesFactory.getUTC()))) {
+                spaceObject.setNakedEyeVisibilityMag(1000);
+            } else {
+                if (skyVisibility == 0)
+                    spaceObject.setNakedEyeVisibilityMag(calculateVisualMagnitude(finalState, stationPosition, endDate));
+                else if (skyVisibility == 60) {
+                    double mag = calculateVisualMagnitude(finalState, stationPosition, endDate);
+                    spaceObject.setNakedEyeVisibilityMag(mag + (mag * 0.6f));
+                } else spaceObject.setNakedEyeVisibilityMag(1000);
             }
-            spaceObject.setNakedEyeVisibilityMag(mag);
             spaceObject.setSatelliteName(satelliteName);
             return spaceObject;
-        } catch (OrekitException | URISyntaxException oe) {
+        } catch (OrekitException oe) {
             System.err.println(oe.getLocalizedMessage());
         }
         return null;
+    }
+
+    private double calculateVisualMagnitude(SpacecraftState finalState, GeodeticPoint stationPosition, AbsoluteDate endDate) {
+        PVCoordinatesProvider sun = CelestialBodyFactory.getSun();
+        OneAxisEllipsoid earthEllipsoid = new OneAxisEllipsoid(Constants.WGS84_EARTH_EQUATORIAL_RADIUS, 0.0,
+                FramesFactory.getITRF(IERSConventions.IERS_2010, true));
+
+        EclipseDetector eclipseDetector = new EclipseDetector(sun, 696000000, earthEllipsoid);
+
+        double maxcheck = 60.0;
+        double threshold = 0.001;
+        AltitudeDetector altitudeDetector = new AltitudeDetector(maxcheck, threshold, earthEllipsoid);
+        double satelliteAltitude = altitudeDetector.g(finalState) / 1000; // km
+        double g = eclipseDetector.g(finalState);
+
+        Vector3D sunPosition = sun.getPVCoordinates(finalState.getDate(), earth.getBodyFrame()).getPosition();
+        Vector3D groundPointPos = earth.transform(stationPosition);
+        Vector3D sunDirection = sunPosition.subtract(groundPointPos);
+        double sunElevation = 0.5 * FastMath.PI - Vector3D.angle(sunDirection, stationPosition.getZenith());
+        sunElevation = FastMath.toDegrees(sunElevation);
+
+        double mag = 1000;
+        if (g > 0 && sunElevation > -18 && sunElevation < -6) {
+            Vector3D sunPos = sun.getPVCoordinates(endDate, earthFrame).getPosition();
+            Vector3D satellitePos = finalState.getPVCoordinates(earthFrame).getPosition();
+            double phaseAngle = FastMath.PI - Vector3D.angle(sunPos.subtract(satellitePos), satellitePos);
+
+            mag = standardMagnitude - 15 + 5 * FastMath.log10(satelliteAltitude) - 2.5 * FastMath.log10(FastMath.sin(phaseAngle) + (FastMath.PI - phaseAngle) * FastMath.cos(phaseAngle));
+
+        }
+        return mag;
     }
 }

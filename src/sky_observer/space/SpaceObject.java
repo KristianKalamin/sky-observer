@@ -1,16 +1,20 @@
 package sky_observer.space;
 
-import org.orekit.time.AbsoluteDate;
-
 public class SpaceObject {
     private String satelliteName;
-    private AbsoluteDate startFlybyTime;
-    private AbsoluteDate endFlybyTime;
+    private String startFlybyTime;
+    private String endFlybyTime;
     private double nakedEyeVisibilityMag;
 
     public SpaceObject() {
     }
 
+    public SpaceObject(String satelliteName, String startFlybyTime, String endFlybyTime, double nakedEyeVisibilityMag) {
+        this.satelliteName = satelliteName;
+        this.startFlybyTime = startFlybyTime;
+        this.endFlybyTime = endFlybyTime;
+        this.nakedEyeVisibilityMag = nakedEyeVisibilityMag;
+    }
 
     public String getSatelliteName() {
         return satelliteName;
@@ -20,19 +24,19 @@ public class SpaceObject {
         this.satelliteName = satelliteName;
     }
 
-    public AbsoluteDate getStartFlybyTime() {
+    public String getStartFlybyTime() {
         return startFlybyTime;
     }
 
-    public void setStartFlybyTime(AbsoluteDate startFlybyTime) {
+    public void setStartFlybyTime(String startFlybyTime) {
         this.startFlybyTime = startFlybyTime;
     }
 
-    public AbsoluteDate getEndFlybyTime() {
+    public String getEndFlybyTime() {
         return endFlybyTime;
     }
 
-    public void setEndFlybyTime(AbsoluteDate endFlybyTime) {
+    public void setEndFlybyTime(String endFlybyTime) {
         this.endFlybyTime = endFlybyTime;
     }
 
@@ -48,8 +52,8 @@ public class SpaceObject {
     public String toString() {
         return "sky_observer.space.SpaceObject{" +
                 ", satelliteName='" + satelliteName + '\'' +
-                ", startFlybyTime=" + (startFlybyTime == null ? "" : startFlybyTime.getDate().toString()) +
-                ", endFlybyTime=" + (endFlybyTime == null ? "" : endFlybyTime.getDate().toString()) +
+                ", startFlybyTime=" + (startFlybyTime == null ? "" : startFlybyTime) +
+                ", endFlybyTime=" + (endFlybyTime == null ? "" : endFlybyTime) +
                 ", nakedEyeVisibilityMag=" + nakedEyeVisibilityMag +
                 '}';
     }

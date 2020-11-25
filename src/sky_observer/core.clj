@@ -7,13 +7,11 @@
             [ring.middleware.json :refer [wrap-json-body]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [cheshire.core :refer [generate-string]]
-            [sky-observer.logic :as logic]
-            [sky-observer.weather :as weather]))
+            [sky-observer.logic :as logic]))
 
 (defroutes app-routes
            (GET "/" [] (generate-string (sightings/select-all)))
-           (GET "/search" [date time lat lon] (logic/search (Double/parseDouble (str lat)) (Double/parseDouble (str lon)) date time))
-           (GET "/weather" [] (generate-string (weather/weather-condition 44.772841, 20.475271, "2020-11-01")))
+           (GET "/search" [date time lat lon] (generate-string (logic/search (Double/parseDouble (str lat)) (Double/parseDouble (str lon)) date time)))
            (POST "/insert" {body :body}
              (sightings/insert body))
            (PUT "/update/:id" {id   :params
@@ -26,4 +24,4 @@
 
 (defn -main
   []
-  (run-server (wrap-defaults app api-defaults) {:port 80}))
+  (run-server (wrap-defaults app api-defaults) {:port 880}))
