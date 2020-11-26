@@ -2,11 +2,12 @@
   (:require [sky-observer.weather :refer [weather-condition]]
             [sky-observer.file-worker :as file-worker]
             [clojure.string :as str]
+            [clojure.set :refer [union]]
             [clojure.core.async :refer [thread <!!]])
   (:import (sky_observer.space VisibilityCheck)))
 
 (def visibility-check (VisibilityCheck. (file-worker/get-orekit-data)))
-(def satellite-list (file-worker/load-satellites))
+(def satellite-list (doall (file-worker/load-satellites)))
 
 (defn propagate [date time lat lon satellites sky-visibility]
   (thread
@@ -23,7 +24,7 @@
                                           (get satellite :satellite-name)
                                           (get satellite :line1)
                                           (get satellite :line2))))
-                      (doall satellites)))
+                      satellites))
          )))
 
 (defn get-coco [lat lon date time]
@@ -32,11 +33,11 @@
                         (weather-condition lat lon date)))))
 
 (defn get-visible-flyby [date time lat lon sky-visibility]
-  (map (fn [x]
-         (distinct (concat (<!! x))))
-       (map (fn [s]
-              (propagate date time lat lon s sky-visibility))
-            (partition-all (int (/ (count satellite-list) 3)) satellite-list))))
+  (distinct (reduce concat (map (fn [thread-result]
+                                  (<!! thread-result))
+                                (map (fn [s]
+                                       (propagate date time lat lon s sky-visibility))
+                                     (partition-all (int (/ (count satellite-list) 4)) satellite-list))))))
 
 (defn search [lat lon date time]
   (let [weather-condition-code (get-coco lat lon date time)]

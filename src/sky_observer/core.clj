@@ -24,4 +24,4 @@
 
 (defn -main
   []
-  (run-server (wrap-defaults app api-defaults) {:port 880}))
+  (run-server (wrap-defaults app api-defaults) {:port 882}))
