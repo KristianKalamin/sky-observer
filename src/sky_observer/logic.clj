@@ -1,5 +1,5 @@
 (ns sky-observer.logic
-  (:require [sky-observer.weather :refer [weather-condition]]
+  (:require [sky-observer.api-call :refer [weather-condition find-location]]
             [sky-observer.file-worker :as file-worker]
             [clojure.string :as str]
             [clojure.set :refer [union]]
@@ -39,12 +39,20 @@
                                        (propagate date time lat lon s sky-visibility))
                                      (partition-all (int (/ (count satellite-list) 4)) satellite-list))))))
 
-(defn search [lat lon date time]
+(defn search [location lat lon date time]
   (let [weather-condition-code (get-coco lat lon date time)]
-    (if (< weather-condition-code 3)
-      (get-visible-flyby date time lat lon 0)
-      (if (= weather-condition-code 3)
-        (get-visible-flyby date time lat lon 60)
-        (get-visible-flyby date time lat lon 100)))
+    (cond
+      (< weather-condition-code 3) (get-visible-flyby date time lat lon 0)
+      (= weather-condition-code 3) (get-visible-flyby date time lat lon 60)
+      :default (get-visible-flyby date time lat lon 100))
+
+
+    ;(if (< weather-condition-code 3)
+    ;  (get-visible-flyby date time lat lon 0)
+    ;  (if (= weather-condition-code 3)
+    ;    (get-visible-flyby date time lat lon 60)
+    ;    (get-visible-flyby date time lat lon 100)))
     ))
 
+(defn locations [params]
+  (find-location params))

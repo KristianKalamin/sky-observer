@@ -1,5 +1,5 @@
-(ns sky-observer.weather
-  (:require [cheshire.core :refer [parse-string generate-string]]
+(ns sky-observer.api-call
+  (:require [cheshire.core :refer [parse-string]]
             [org.httpkit.client :as client]
             [org.httpkit.sni-client :as sni-client]
             [sky-observer.file-worker :as file-worker]))
@@ -27,11 +27,23 @@
                              }))))
 
 (defn weather-condition [lat, lon, start-date]
-  ;(str(:coco (get (:data (parse-string
-  ;              (get-historic-weather lat, lon, start-date, start-date) true)
-  ;       ) 3)))
-
   (:data (parse-string
-           (get-historic-weather lat, lon, start-date, start-date) true))
+           (get-historic-weather lat, lon, start-date, start-date) true)))
 
-  )
+(defn find-location [location]
+  (let [{
+         url    :search-url
+         method :method
+         } (file-worker/get-endpoint :map-search)]
+
+    (map (fn [loc] {:lat   (get loc :lat)
+                    :lon   (get loc :lon)
+                    :place (get loc :display_name)
+                    })
+         (parse-string (:body @(client/request {
+                                                :url          (str url location)
+                                                :method       (keyword method)
+                                                :query-params {
+                                                               "format" "json"
+                                                               }
+                                                })) true))))
