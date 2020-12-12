@@ -10,6 +10,7 @@
                  [ring "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.5.0"]
+                 [ring-cors "0.1.13"]
                  [http-kit "2.5.0"]
                  [cheshire "5.10.0"]
                  [org.orekit/orekit "10.2"]
