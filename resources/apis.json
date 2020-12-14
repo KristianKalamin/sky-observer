@@ -7,5 +7,9 @@
   "map-search": {
     "search-url": "https://nominatim.openstreetmap.org/search/",
     "method": "get"
+  },
+  "map-search-coordinates": {
+    "search-url": "https://nominatim.openstreetmap.org/reverse/",
+    "method": "get"
   }
 }

@@ -30,6 +30,9 @@
   (:data (parse-string
            (get-historic-weather lat, lon, start-date, start-date) true)))
 
+(defn get-location [request-params]
+  (parse-string (:body @(client/request request-params)) true))
+
 (defn find-location [location]
   (let [{
          url    :search-url
@@ -40,10 +43,30 @@
                     :lon   (get loc :lon)
                     :place (get loc :display_name)
                     })
-         (parse-string (:body @(client/request {
-                                                :url          (str url location)
-                                                :method       (keyword method)
-                                                :query-params {
-                                                               "format" "json"
-                                                               }
-                                                })) true))))
+         (get-location (hash-map :url (str url location)
+                                 :method (keyword method)
+                                 :query-params {
+                                                "format" "json"
+                                                }))
+         )))
+
+(defn find-location-with-coordinates [lat-param lon-param]
+  (let [{
+         url    :search-url
+         method :method
+         } (file-worker/get-endpoint :map-search-coordinates)]
+    (let [{
+           lat          :lat
+           lon          :lon
+           display-name :display_name
+           }
+          (get-location (hash-map :url url
+                                  :method (keyword method)
+                                  :query-params {
+                                                 "format" "jsonv2"
+                                                 "lat"    lat-param
+                                                 "lon"    lon-param
+                                                 }))]
+      (hash-map :lat lat
+                :lon lon
+                :place display-name))))

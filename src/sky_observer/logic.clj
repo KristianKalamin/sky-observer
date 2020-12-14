@@ -1,7 +1,10 @@
 (ns sky-observer.logic
-  (:require [sky-observer.api-call :refer [weather-condition find-location]]
+  (:require [sky-observer.api-call :refer [weather-condition
+                                           find-location
+                                           find-location-with-coordinates]]
             [sky-observer.file-worker :as file-worker]
             [clojure.string :as str]
+            [cheshire.core :refer [generate-string]]
             [clojure.set :refer [union]]
             [clojure.core.async :refer [thread <!!]])
   (:import (sky_observer.space VisibilityCheck)))
@@ -55,4 +58,7 @@
     ))
 
 (defn locations [params]
-  (find-location params))
+  (generate-string (find-location params)))
+
+(defn coordinate-location [lat lon]
+  (generate-string (find-location-with-coordinates lat lon)))

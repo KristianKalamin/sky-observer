@@ -10,6 +10,7 @@
 
 (defroutes app-routes
            (POST "/locations" {body :body} (logic/locations (:location body)))
+           (POST "/location" {body :body} (logic/coordinate-location (:lat body) (:lon body)))
            (GET "/search" [location date time lat lon]
              (logic/search location (Double/parseDouble (str lat)) (Double/parseDouble (str lon)) date time))
 
