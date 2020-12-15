@@ -7,7 +7,7 @@
 
 (alter-var-root #'org.httpkit.client/*default-client* (fn [_] sni-client/default-client))
 
-(defn get-historic-weather [lat, lon, start-date, end-date]
+(defn ^:private get-historic-weather [lat, lon, start-date, end-date]
   (let [{url     :hourly-weather-url
          api-key :key
          method  :method} (file-worker/get-endpoint :weather)]
@@ -30,7 +30,7 @@
   (:data (parse-string
            (get-historic-weather lat, lon, start-date, start-date) true)))
 
-(defn get-location [request-params]
+(defn ^:private get-location [request-params]
   (parse-string (:body @(client/request request-params)) true))
 
 (defn find-location [location]

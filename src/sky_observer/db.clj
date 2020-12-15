@@ -5,17 +5,17 @@
   (:import (java.time LocalDateTime)))
 
 ;(def uri "mongodb://localhost:27017")
-(def db-name "sky-observer-db")
-(def collection-name "search-collection")
+(def ^:private db-name "sky-observer-db")
+(def ^:private collection-name "search-collection")
 
-(def get-db (mg/get-db (mg/connect) db-name))
+(def ^:private get-db (mg/get-db (mg/connect) db-name))
 
 
-(defmacro ^{:private true} defoperator
+(defmacro ^:private defoperator
   [operator]
   `(def ^{:const true} ~(symbol (str operator)) ~(str operator)))
 
-(defoperator $center)
+(defoperator ^:private $center)
 
 (defn save-search [location-name lat lon date time]
 

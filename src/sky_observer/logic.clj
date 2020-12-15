@@ -10,10 +10,10 @@
             [sky-observer.db :refer [save-search get-within-radius]])
   (:import (sky_observer.space VisibilityCheck)))
 
-(def visibility-check (VisibilityCheck. (file-worker/get-orekit-data)))
-(def satellite-list (doall (file-worker/load-satellites)))
+(def ^:private visibility-check (VisibilityCheck. (file-worker/get-orekit-data)))
+(def ^:private satellite-list (doall (file-worker/load-satellites)))
 
-(defn propagate [date time lat lon satellites sky-visibility]
+(defn ^:private propagate [date time lat lon satellites sky-visibility]
   (thread
     (map (fn [obj]
            (dissoc obj :class))
@@ -31,12 +31,12 @@
                       satellites))
          )))
 
-(defn get-coco [lat lon date time]
+(defn ^:private get-coco [lat lon date time]
   (:coco (first (filter (fn [hour-weather]
                           (= (subs (get (str/split (get hour-weather :time) #" ") 1) 0 2) (subs time 0 2)))
                         (weather-condition lat lon date)))))
 
-(defn get-visible-flyby [date time lat lon sky-visibility]
+(defn ^:private get-visible-flyby [date time lat lon sky-visibility]
   (generate-string (distinct (reduce concat (map (fn [thread-result]
                                                    (<!! thread-result))
                                                  (map (fn [s]
@@ -58,7 +58,7 @@
 (defn coordinate-location [lat lon]
   (generate-string (find-location-with-coordinates lat lon)))
 
-(defn get-lat-lon [data]
+(defn ^:private get-lat-lon [data]
   (hash-map
     :lon ((get (get data :loc) :coordinates) 0)
     :lat ((get (get data :loc) :coordinates) 1)))
