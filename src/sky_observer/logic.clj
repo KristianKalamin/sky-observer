@@ -6,7 +6,8 @@
             [clojure.string :as str]
             [cheshire.core :refer [generate-string]]
             [clojure.set :refer [union]]
-            [clojure.core.async :refer [thread <!!]])
+            [clojure.core.async :refer [thread <!!]]
+            [sky-observer.db :refer [save-search get-within-radius]])
   (:import (sky_observer.space VisibilityCheck)))
 
 (def visibility-check (VisibilityCheck. (file-worker/get-orekit-data)))
@@ -36,25 +37,19 @@
                         (weather-condition lat lon date)))))
 
 (defn get-visible-flyby [date time lat lon sky-visibility]
-  (distinct (reduce concat (map (fn [thread-result]
-                                  (<!! thread-result))
-                                (map (fn [s]
-                                       (propagate date time lat lon s sky-visibility))
-                                     (partition-all (int (/ (count satellite-list) 4)) satellite-list))))))
+  (generate-string (distinct (reduce concat (map (fn [thread-result]
+                                                   (<!! thread-result))
+                                                 (map (fn [s]
+                                                        (propagate date time lat lon s sky-visibility))
+                                                      (partition-all (int (/ (count satellite-list) 4)) satellite-list)))))))
 
 (defn search [location lat lon date time]
   (let [weather-condition-code (get-coco lat lon date time)]
+    (save-search location lat lon date time)
     (cond
       (< weather-condition-code 3) (get-visible-flyby date time lat lon 0)
       (= weather-condition-code 3) (get-visible-flyby date time lat lon 60)
       :default (get-visible-flyby date time lat lon 100))
-
-
-    ;(if (< weather-condition-code 3)
-    ;  (get-visible-flyby date time lat lon 0)
-    ;  (if (= weather-condition-code 3)
-    ;    (get-visible-flyby date time lat lon 60)
-    ;    (get-visible-flyby date time lat lon 100)))
     ))
 
 (defn locations [params]
@@ -62,3 +57,13 @@
 
 (defn coordinate-location [lat lon]
   (generate-string (find-location-with-coordinates lat lon)))
+
+(defn get-lat-lon [data]
+  (hash-map
+    :lon ((get (get data :loc) :coordinates) 0)
+    :lat ((get (get data :loc) :coordinates) 1)))
+
+(defn find-historic-searches [lat lon]
+  (generate-string (map get-lat-lon
+                        (get-within-radius (Double/parseDouble lat)
+                                           (Double/parseDouble lon)))))

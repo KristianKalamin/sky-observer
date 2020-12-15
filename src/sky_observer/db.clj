@@ -1,19 +1,34 @@
 (ns sky-observer.db
-  (:require [clojure.java.jdbc :as my-sql]))
+  (:require [monger.core :as mg]
+            [monger.collection :as mc]
+            [monger.operators :refer :all])
+  (:import (java.time LocalDateTime)))
 
-(def db {:subprotocol "mysql"
-         :subname     "//localhost:3306/sky_observer_db"
-         :user        "root"
-         :password    "1234"})
+;(def uri "mongodb://localhost:27017")
+(def db-name "sky-observer-db")
+(def collection-name "search-collection")
 
-(defn insert [table, row-data]
-  (my-sql/insert! db table row-data))
+(def get-db (mg/get-db (mg/connect) db-name))
 
-(defn select-all-from [table]
-  (my-sql/query db [(str "SELECT * FROM " table)]))
 
-(defn update [table, new-value, id]
-  (my-sql/update! db table new-value ["id = ?" id]))
+(defmacro ^{:private true} defoperator
+  [operator]
+  `(def ^{:const true} ~(symbol (str operator)) ~(str operator)))
 
-(defn delete [table, id]
-  (my-sql/delete! db table ["id = ?" id]))
+(defoperator $center)
+
+(defn save-search [location-name lat lon date time]
+
+  (mc/insert-and-return get-db collection-name (hash-map
+                                                 :location-name location-name
+                                                 :date date
+                                                 :time time
+                                                 :search-timestamp (-> (LocalDateTime/now)
+                                                                       (.toString))
+                                                 :loc (hash-map
+                                                        :coordinates (vector lon lat)
+                                                        :type "Point"
+                                                        ))))
+
+(defn get-within-radius [lat lon]
+  (mc/find-maps get-db collection-name {:loc {$geoWithin {$center [[lon lat] 15]}}}))
