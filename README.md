@@ -1,14 +1,25 @@
-# sky-watcher
+# sky-observer
 
-A Clojure library designed to ... well, that part is up to you.
+Sky Observer is a web app (this is backend repository for frontend go [here](https://github.com/KristianKalamin/sky-observer-frontend))
+which aim is to help users to figure out what they saw or will see on night sky.
 
-## Usage
+By simply inputting your location, date and time this app will calculate which satellite(s) 
+you could see (with the naked eye or with a telescope) above your location.  
 
-FIXME
+## REQUIREMENTS
+
+- Java 8
+- Clojure
+- Leiningen
+- MongoDB (installed with default location and port eg. `mongodb://localhost:27017`)
+
+## USAGE
+
+To run app type in terminal `lein run` and embedded server will start on `port 882`
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 Kristian Kalamin
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

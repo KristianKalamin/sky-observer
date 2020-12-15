@@ -94,7 +94,7 @@ public class VisibilityCheck {
             );
 
             initialDate = initialDate.shiftedBy(-600); // -10 min
-            AbsoluteDate endDate = initialDate.shiftedBy(/*1200*/12000);//-10 +20 min
+            AbsoluteDate endDate = initialDate.shiftedBy(1200);//-10 +20 min
 
             final double mu = 3.986004415e+14; // gravitation coefficient
             final Frame inertialFrame = FramesFactory.getEME2000(); // inertial frame for orbit definition
