@@ -13,7 +13,7 @@
            (POST "/location" {body :body} (logic/coordinate-location (:lat body) (:lon body)))
            (POST "/historic-searches" {body :body} (logic/find-historic-searches (:lat body) (:lon body)))
            (GET "/search" [location date time lat lon]
-             (logic/search location (Double/parseDouble (str lat)) (Double/parseDouble (str lon)) date time))
+             (logic/search location lat lon date time))
 
            (route/not-found "Not Found"))
 (def app
