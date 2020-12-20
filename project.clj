@@ -15,6 +15,7 @@
                  [org.clojure/core.async "1.3.610"]
                  [com.novemberain/monger "3.1.0"]]
 
-  :java-source-paths ["src/sky_observer/space"]
+  :java-source-paths ["src/java"]
+  :source-paths ["src/clojure"]
   :main sky-observer.core/-main
   :repl-options {:init-ns sky-observer.core})
