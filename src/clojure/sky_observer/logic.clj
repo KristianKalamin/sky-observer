@@ -28,9 +28,7 @@
                                           lon
                                           (get satellite :satellite-name)
                                           (get satellite :line1)
-                                          (get satellite :line2))))
-                      satellites))
-         )))
+                                          (get satellite :line2)))) satellites)))))
 
 (defn ^:private get-coco [lat lon date time]
   (:coco (first (filter (fn [hour-weather]
@@ -58,16 +56,15 @@
         (= (check-date-time date time) :false) :false
         :default
 
-        (let [num-lat (Double/parseDouble (str lat))
-              num-lon (Double/parseDouble (str lon))]
+        (let [num-lat (Double/parseDouble lat)
+              num-lon (Double/parseDouble lon)]
 
           (let [weather-condition-code (get-coco num-lat num-lon date time)]
             (save-search location num-lat num-lon date time)
             (cond
               (< weather-condition-code 3) (get-visible-flyby date time num-lat num-lon 0)
               (= weather-condition-code 3) (get-visible-flyby date time num-lat num-lon 60)
-              :default (get-visible-flyby date time num-lat num-lon 100))
-            ))))
+              :default (get-visible-flyby date time num-lat num-lon 100))))))
 
 (defn locations [params]
   (generate-string (find-location params)))

@@ -2,6 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [org.httpkit.server :refer [run-server]]
+            [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.json :refer [wrap-json-body]]
             [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
@@ -26,5 +27,5 @@
 
 (defn -main
   []
-  (run-server (wrap-defaults app api-defaults) {:port 882})
+  (run-server (wrap-reload (wrap-defaults app api-defaults)) {:port 882})
   (println "Server is running"))

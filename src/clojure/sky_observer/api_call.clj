@@ -12,19 +12,13 @@
          api-key :key
          method  :method} (file-worker/get-endpoint :weather)]
 
-    (:body @(client/request {
-                             :url          url
+    (:body @(client/request {:url          url
                              :method       (keyword method)
-                             :headers      {
-                                            "x-api-key" api-key
-                                            }
-                             :query-params {
-                                            "lat"   lat
+                             :headers      {"x-api-key" api-key}
+                             :query-params {"lat"   lat
                                             "lon"   lon
                                             "start" start-date
-                                            "end"   end-date
-                                            }
-                             }))))
+                                            "end"   end-date}}))))
 
 (defn weather-condition [lat, lon, start-date]
   (:data (parse-string
@@ -34,39 +28,27 @@
   (parse-string (:body @(client/request request-params)) true))
 
 (defn find-location [location]
-  (let [{
-         url    :search-url
-         method :method
-         } (file-worker/get-endpoint :map-search)]
+  (let [{url    :search-url
+         method :method} (file-worker/get-endpoint :map-search)]
 
     (map (fn [loc] {:lat   (get loc :lat)
                     :lon   (get loc :lon)
-                    :place (get loc :display_name)
-                    })
-         (get-location (hash-map :url (str url location)
-                                 :method (keyword method)
-                                 :query-params {
-                                                "format" "json"
-                                                }))
-         )))
+                    :place (get loc :display_name)})
+         (get-location {:url          (str url location)
+                        :method       (keyword method)
+                        :query-params {"format" "json"}}))))
 
 (defn find-location-with-coordinates [lat-param lon-param]
-  (let [{
-         url    :search-url
-         method :method
-         } (file-worker/get-endpoint :map-search-coordinates)]
-    (let [{
-           lat          :lat
+  (let [{url    :search-url
+         method :method} (file-worker/get-endpoint :map-search-coordinates)]
+    (let [{lat          :lat
            lon          :lon
-           display-name :display_name
-           }
-          (get-location (hash-map :url url
-                                  :method (keyword method)
-                                  :query-params {
-                                                 "format" "jsonv2"
-                                                 "lat"    lat-param
-                                                 "lon"    lon-param
-                                                 }))]
-      (hash-map :lat lat
-                :lon lon
-                :place display-name))))
+           display-name :display_name}
+          (get-location {:url          url
+                         :method       (keyword method)
+                         :query-params {"format" "jsonv2"
+                                        "lat"    lat-param
+                                        "lon"    lon-param}})]
+      {:lat   lat
+       :lon   lon
+       :place display-name})))
