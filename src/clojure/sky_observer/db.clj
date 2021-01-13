@@ -10,11 +10,11 @@
 
 (defn save-search [location-name lat lon date time]
   (mc/insert-and-return (mg/get-db (mg/connect) db-name) collection-name {:location-name    location-name
-                                                                           :date             date
-                                                                           :time             time
-                                                                           :search-timestamp (.toString (LocalDateTime/now))
-                                                                           :loc              {:coordinates (vector lon lat)
-                                                                                              :type        "Point"}}))
+                                                                          :date             date
+                                                                          :time             time
+                                                                          :search-timestamp (.toString (LocalDateTime/now))
+                                                                          :loc              {:coordinates (vector lon lat)
+                                                                                             :type        "Point"}}))
 
 (defn get-within-radius [lat lon]
-  (mc/find-maps (mg/get-db (mg/connect) db-name) collection-name {:loc {$geoWithin {$center [[lon lat] 15]}}}))
+  (mc/find-maps (mg/get-db (mg/connect) db-name) collection-name {:loc {$geoWithin {$center [[lon lat] 10]}}}))

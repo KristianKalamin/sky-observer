@@ -34,7 +34,7 @@
     (map (fn [loc] {:lat   (get loc :lat)
                     :lon   (get loc :lon)
                     :place (get loc :display_name)})
-         (get-location {:url          (str url location)
+         (get-location {:url          (str url (clojure.string/replace location #" " "%20"))
                         :method       (keyword method)
                         :query-params {"format" "json"}}))))
 

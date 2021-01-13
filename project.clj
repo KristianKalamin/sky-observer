@@ -13,7 +13,12 @@
                  [cheshire "5.10.0"]
                  [org.orekit/orekit "10.2"]
                  [org.clojure/core.async "1.3.610"]
-                 [com.novemberain/monger "3.1.0"]]
+                 [com.novemberain/monger "3.5.0"]]
+
+  :profiles {:dev {:dependencies [[midje "1.9.9"]
+                                  [ring/ring-mock "0.4.0"]]
+                   :plugins      [[lein-midje "3.2.2"]]}}
+
 
   :java-source-paths ["src/java"]
   :source-paths ["src/clojure"]

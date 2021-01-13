@@ -11,10 +11,9 @@
 
 (defroutes app-routes
            (POST "/locations" {body :body} (logic/locations (:location body)))
-           (POST "/location" {body :body} (logic/coordinate-location (:lat body) (:lon body)))
-           (POST "/historic-searches" {body :body} (logic/find-historic-searches (:lat body) (:lon body)))
-           (GET "/search" [location date time lat lon]
-             (logic/search location lat lon date time))
+           (POST "/location" {body :body} (logic/check-coordinates (:lat body) (:lon body) logic/coordinate-location))
+           (POST "/historic-searches" {body :body} (logic/check-coordinates (:lat body) (:lon body) logic/find-historic-searches))
+           (GET "/search" [location date time lat lon] (logic/search location lat lon date time))
 
            (route/not-found "Not Found"))
 (def app

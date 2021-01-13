@@ -72,7 +72,7 @@ public class VisibilityCheck {
 
     public SpaceObject propagate(
 
-            String date,
+            LocalDateTime date,
             int skyVisibility,
             double observerLat,
             double observerLon,
@@ -80,7 +80,7 @@ public class VisibilityCheck {
             String line1,
             String line2) {
         try {
-            LocalDateTime observerDate = LocalDateTime.parse(date);
+            LocalDateTime observerDate = date;
 
             //  Initial state definition : date, orbit
             AbsoluteDate initialDate = new AbsoluteDate(
@@ -173,7 +173,7 @@ public class VisibilityCheck {
         } catch (OrekitException oe) {
             System.err.println(oe.getLocalizedMessage());
         }
-        return null;
+        return new SpaceObject();
     }
 
     private double calculateVisualMagnitude(SpacecraftState finalState, GeodeticPoint stationPosition, AbsoluteDate endDate) {
